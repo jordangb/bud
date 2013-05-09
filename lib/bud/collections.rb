@@ -1,3 +1,5 @@
+require_relative 'http_internal'
+require 'thread'
 $struct_classes = {}
 module Bud
   ########
@@ -874,6 +876,83 @@ module Bud
   end
 
   class BudOutputInterface < BudScratch
+  end
+
+
+######################################################
+#
+#                   added classes
+#
+#
+######################################################
+  class BudHTTPRequest < BudOutputInterface
+
+    def initialize (name, bud_instance, http_response_interface)
+      super(name, bud_instance, [:to_address, :http_type, :id, :params])
+      @http_response_interface = http_response_interface
+    end
+
+    def handleData(table)
+      #todo
+      table.each_value do |t|
+        th = Thread.new {
+          @http_response_interface <= [http_handle(t[0], t[1], t[2], t[3])]
+        }
+        th.abort_on_exception = true
+      end
+    end
+
+    def tick
+      handleData(@pending)
+
+      #from scratch
+      @delta.clear
+      if not @pending.empty?
+        invalidate_cache
+        @delta = @pending
+        @pending = {}
+      elsif is_source
+        invalidate_cache
+      end
+      raise Bud::Error, "orphaned tuples in @new_delta for #{qualified_tabname}" unless @new_delta.empty?
+    end
+
+    public
+    def <=(o) #:nodoc: all
+      raise Bud::CompileError, "illegal use of <= with http_request '#{@tabname}' on left"
+    end
+
+    superator "<+" do |o|
+      raise Bud::CompileError, "illegal use of <+ with http_request '#{@tabname}' on left"
+    end
+
+    superator "<~" do |o|
+      if o.class <= Bud::PushElement
+        o.wire_to(self, :pending)
+      elsif o.class <= Bud::BudCollection
+        o.pro.wire_to(self, :pending)
+      elsif o.class <= Proc
+        tbl = register_coll_expr(o)
+        tbl.pro.wire_to(self, :pending)
+      else
+        pending_merge(o)
+      end
+    end
+  end
+
+  class BudHTTPResponse < BudInputInterface
+
+    def initialize (name, bud_instance)
+      super(name, bud_instance, [:from_address, :http_type, :id, :response])
+    end
+
+    superator "<+" do |o|
+      raise Bud::CompileError, "illegal use of <+ with http_request '#{@tabname}' on left"
+    end
+
+    superator "<~" do |o|
+      raise Bud::CompileError, "illegal use of <+ with http_request '#{@tabname}' on left"
+    end
   end
 
   class BudTemp < BudScratch # :nodoc: all

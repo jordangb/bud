@@ -1,24 +1,7 @@
 require 'net/http'
-require_relative 'lib/bud'
-
-class Test
-  include Bud
-
-  state do
-  	httpreq :t, [:bag]
-  end
-
-  bloom do
-  	t <~ [['a'], ['b']]
-  end
-
-end
 
 def test()
 	#puts http_handle('http://posttestserver.com/post.php', 'Post', 4, {:handle => 'pull'})[0]
-	t = Test.new
-	t.tick
-	t.tick
 end
 
 

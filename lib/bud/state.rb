@@ -54,6 +54,16 @@ module Bud
     @tables[name] = (mode ? BudInputInterface : BudOutputInterface).new(name, self, schema)
   end
 
+  def httpresp(name)
+    define_collection(name)
+    @tables[name] = Bud::BudHTTPResponse.new(name, self)
+  end
+
+  def httpreq(name, http_response_interface)
+    define_collection(name)
+    @tables[name] = Bud::BudHTTPRequest.new(name, self, http_response_interface)
+  end
+
   # declare an in-memory, non-transient collection.  default schema <tt>[:key] => [:val]</tt>.
   def table(name, schema=nil)
     define_collection(name)
