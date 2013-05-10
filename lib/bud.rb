@@ -1208,8 +1208,8 @@ module Bud
     table :t_underspecified, t_provides.schema
 
     #http interfaces
-    @http_response = httpresp :http_response
-    @http_request = httpreq :http_request, http_response
+    httpresp :http_response
+    httpreq :http_request, http_response
 
     # Identify builtin tables as such
     @builtin_tables = @tables.clone if toplevel

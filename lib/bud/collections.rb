@@ -896,7 +896,7 @@ module Bud
       #todo
       table.each_value do |t|
         th = Thread.new {
-          @http_response_interface <= [http_handle(t[0], t[1], t[2], t[3])]
+          @http_response_interface <+ [http_handle(t[0], t[1], t[2], t[3])]
         }
         th.abort_on_exception = true
       end
@@ -926,6 +926,8 @@ module Bud
       raise Bud::CompileError, "illegal use of <+ with http_request '#{@tabname}' on left"
     end
 
+    
+
     superator "<~" do |o|
       if o.class <= Bud::PushElement
         o.wire_to(self, :pending)
@@ -946,12 +948,11 @@ module Bud
       super(name, bud_instance, [:from_address, :http_type, :id, :response])
     end
 
-    superator "<+" do |o|
-      raise Bud::CompileError, "illegal use of <+ with http_request '#{@tabname}' on left"
-    end
+    
 
     superator "<~" do |o|
-      raise Bud::CompileError, "illegal use of <+ with http_request '#{@tabname}' on left"
+      #puts 'in'+o.to_s
+      raise Bud::CompileError, "illegal use of <~ with http_response '#{@tabname}' on left"
     end
   end
 
