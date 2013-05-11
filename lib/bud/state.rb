@@ -54,11 +54,16 @@ module Bud
     @tables[name] = (mode ? BudInputInterface : BudOutputInterface).new(name, self, schema)
   end
 
+# method to create a BudHTTPResponse table with its predefined schema
+# the only needed parameter is the name of the table as its schema is predefined by its class
   def httpresp(name)
     define_collection(name)
     @tables[name] = Bud::BudHTTPResponse.new(name, self)
   end
 
+# method to create a BudHTTPRequest table with its predefined schema
+# An http_response_interface must be specified which is the httpresp that this instance
+# will forward all HTTP responses it receives to.
   def httpreq(name, http_response_interface)
     define_collection(name)
     @tables[name] = Bud::BudHTTPRequest.new(name, self, http_response_interface)

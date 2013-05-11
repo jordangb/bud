@@ -10,11 +10,11 @@ class Test
   end
 
   bloom do
-  	http_request <~ [['http://qmaker.zxq.net/qmakerfx/?qid=3', 'get', 99, []]]
-  	stdio <~ http_response.inspected
-    hreq <~ [['http://qmaker.zxq.net/qmakerfx/?qid=3', 'get', 0, []]]
+    hreq <~ [['http://qmaker.zxq.net/qmakerfx/?qid=3', 'get', 0, [], lambda{|resp| return '~~~'}]]
     stdio <~ hresp.inspected
   end
+
+  
 
 end
 
@@ -29,6 +29,8 @@ def test()
 end
 
 test()
+
+
 
 
 

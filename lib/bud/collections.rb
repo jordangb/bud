@@ -881,22 +881,37 @@ module Bud
 
 ######################################################
 #
-#                   added classes
-#
+#                   added HTTP classes
+# Implemented by CS 194 students
 #
 ######################################################
+
+# BudHTTPRequest has a set schema [:to_address, :http_type, :id, :params, :parse_function].
+# - to_address is the address that the http request should be sent to i.e. 'http://www.google.com'
+# - http_type is the type of HTTP request to be made i.e. 'GET', 'PUT', 'POST', 'DEL'
+# - id is the user specified id of the request
+# - params are the query parameters for the HTTP request as a hash i.e. {'query_variable' => 'value', 'qv2' => 'v2'}
+# - parse_function can be left empty if the whole response string is wanted. If a specific parsing function should be applied
+#      to the response, parse_function should be a lambda function with one argument.
+# Only accepts the <~ and <- operators
+#
+# automatically handles forwarding to the BudHTTPResponse table it is associated with on instantiation
+# all HTTP requests are made asynchornously and will not necessarily be received on the next tick
   class BudHTTPRequest < BudOutputInterface
 
     def initialize (name, bud_instance, http_response_interface)
-      super(name, bud_instance, [:to_address, :http_type, :id, :params])
+      super(name, bud_instance, [:to_address, :http_type, :id, :params, :parse_function])
       @http_response_interface = http_response_interface
     end
 
     def handleData(table)
-      #todo
       table.each_value do |t|
         th = Thread.new {
-          @http_response_interface <+ [http_handle(t[0], t[1], t[2], t[3])]
+          if t[4] == nil
+            @http_response_interface <+ [http_handle(t[0], t[1], t[2], t[3])]
+          else
+            @http_response_interface <+ [http_handle(t[0], t[1], t[2], t[3], t[4])]
+          end
         }
         th.abort_on_exception = true
       end
@@ -926,8 +941,6 @@ module Bud
       raise Bud::CompileError, "illegal use of <+ with http_request '#{@tabname}' on left"
     end
 
-    
-
     superator "<~" do |o|
       if o.class <= Bud::PushElement
         o.wire_to(self, :pending)
@@ -942,16 +955,18 @@ module Bud
     end
   end
 
+# This is the output of BudHTTPRequest.
+# - from_address is the address that the request was made to
+# - http_type is the type of request that was made
+# - id is the user specified id sent with the request
+# - response is the response from the HTTP request
   class BudHTTPResponse < BudInputInterface
 
     def initialize (name, bud_instance)
       super(name, bud_instance, [:from_address, :http_type, :id, :response])
     end
 
-    
-
     superator "<~" do |o|
-      #puts 'in'+o.to_s
       raise Bud::CompileError, "illegal use of <~ with http_response '#{@tabname}' on left"
     end
   end

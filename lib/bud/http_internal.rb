@@ -1,11 +1,12 @@
 require 'net/http'
 
-def test()
-	#puts http_handle('http://posttestserver.com/post.php', 'Post', 4, {:handle => 'pull'})[0]
-end
-
-
-def http_handle(address, http_type, id, params)
+# This is the method that the httpreq calls to handle the http requests passed to it.
+# It determines the type of HTTP request made and issues that request. It then passes
+# back the HTTP response. If parse_function is not specified, the response message
+# will be unaltered otherwise the response message will be parsed according to the
+# specified lambda function. If there is not a successful HTTP response, an error is
+# raised that specifies that the request is not successful.
+def http_handle(address, http_type, id, params, parse_function=nil)
 
 	case http_type
 	when 'GET', 'Get', 'get'
@@ -17,12 +18,18 @@ def http_handle(address, http_type, id, params)
 	when 'POST', 'Post', 'post'
 		response = http_post(address, params)
 	else
-		raise 'http_type:'+http_type+' is not supported'
+		raise 'ERROR: http_type: '+http_type+' is not supported. Accepted HTTP types are: GET, PUT, DEL, POST.'
 	end
+
 	if response == nil
-		raise 'http request unsuccessful'
+		raise 'ERROR: HTTP '+ http_type+' request to '+address+' was unsuccessful.'
 	end
-	return address, http_type, id, response
+
+	if parse_function == nil
+		return address, http_type, id, default_parse(response)
+	else
+		return address, http_type, id, parse_function.call(response)
+	end
 end
 
 #Post requires a different method for some reason
@@ -36,6 +43,8 @@ def http_post(url, params)
 	end
 end
 
+#Makes the get, put, or delete http requests and returns the response if the
+#request is successful. Otherwise it returns nil.
 def http_req(type, url, params)
 	uri = URI(url)
 	http = Net::HTTP.new(uri.host, uri.port)
@@ -48,13 +57,10 @@ def http_req(type, url, params)
 	end
 end
 
-test()
-
-
-
-
-
-
-
-
+def default_parse(string_response)
+	#todo
+	#Doesn't do anything right now.
+	#Here in case default parsing wants to be implemented in the future
+	return string_response
+end
 
