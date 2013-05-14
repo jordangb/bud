@@ -10,7 +10,7 @@ class Test
   end
 
   bloom do
-    hreq <~ [['http://qmaker.zxq.net/qmakerfx/?qid=3', 'get', 0, [], lambda{|resp| return '~~~'}]]
+    hreq <~ [['http://qmaker.zxq.net/qmakerfx/', 'get', 0, {'qid' => 3}]]
     stdio <~ hresp.inspected
   end
 
